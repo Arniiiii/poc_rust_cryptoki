@@ -39,21 +39,46 @@ fn main() -> eyre::Result<()> {
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&user_pin))?;
 
+    // finally initializing complete, doing actual stuff.
+
+    // ECDSA PART
+
+    // openssl ecparam -name secp256k1 -outform der | xxd -p | sed -Ez 's/\n//;s/../0x&, /g;s/, $//;s/(.*)/let elliptic_curve_params = vec![\1];\n/'
+    let elliptic_curve_params = vec![0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x0a];
+
     // template of the public key
     let pub_key_template = vec![
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::PublicExponent(vec![0x01, 0x00, 0x01]),
-        Attribute::ModulusBits(1024.into()),
+        Attribute::Verify(true),
+        Attribute::Encrypt(true),
+        Attribute::EcParams(elliptic_curve_params),
+        Attribute::Label("ec_pub".into()),
     ];
 
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(true),
+        Attribute::Sign(true),
+        Attribute::Decrypt(true),
+        Attribute::Sensitive(true),
+        Attribute::Label("ec_private".into()),
+    ];
 
     // generate an RSA key according to passed templates
-    let (_public, _private) = session.generate_key_pair(
-        &Mechanism::RsaPkcsKeyPairGen,
+    let (public, private) = session.generate_key_pair(
+        &Mechanism::EccKeyPairGen,
         &pub_key_template,
         &priv_key_template,
     )?;
+
+    let data_to_sign = vec![1, 2, 3, 4, 5, 6, 7];
+
+    let signature = session.sign(&Mechanism::Ecdsa, private, &data_to_sign)?;
+
+    session.verify(&Mechanism::Ecdsa, public, &data_to_sign, &signature)?;
+
+    println!("Successfully verified a signature: '{:?}'", signature);
+
     Ok(())
 }
