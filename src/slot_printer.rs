@@ -20,5 +20,13 @@ fn main() -> eyre::Result<()> {
 
     println!("slots: \n{:?}", slot);
 
+    let slot = pkcs11.get_slots_with_token()?;
+
+    println!("slots with token: \n{:?}", slot);
+
+    let slot = pkcs11.get_slots_with_initialized_token()?;
+
+    println!("slots with initialized token: \n{:?}", slot);
+
     Ok(())
 }
