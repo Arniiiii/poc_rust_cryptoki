@@ -22,11 +22,11 @@ fn main() -> eyre::Result<()> {
 
     // initialize a test token
     let so_pin =
-        AuthPin::new(env::var("PKCS11_SO_PIN").unwrap_or_else(|_| "1234567890".to_string()));
+        AuthPin::new(env::var("PKCS11_SO_PIN").unwrap_or_else(|_| "1234567890".to_string()).into());
     pkcs11.init_token(slot, &so_pin, "Test Token")?;
 
     let user_pin =
-        AuthPin::new(env::var("PKCS11_USER_PIN").unwrap_or_else(|_| "0987654321".to_string()));
+        AuthPin::new(env::var("PKCS11_USER_PIN").unwrap_or_else(|_| "0987654321".to_string()).into());
 
     // initialize user PIN
     {
