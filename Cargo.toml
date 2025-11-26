@@ -3,6 +3,10 @@ name = "test_cryptoki"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "slot_printer"
+path = "src/slot_printer.rs"
+
 [dependencies]
 cryptoki = { git = "https://github.com/Arniiiii/rust-cryptoki-castrated" }
 eyre = "0.6.12"
